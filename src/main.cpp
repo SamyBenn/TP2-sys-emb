@@ -154,7 +154,7 @@ void loop() {
   int buttonActionT4 = myButtonT4->checkMyButton();
       if(buttonActionT4 > 2)  {  //Si appuyé plus de 0.2 secondes
             Serial.println("Button T4 pressed");
-            if(myStone) myStone->changePage();
+            if(myStone) myStone->changePage("main");
             }
 
   int buttonActionT5 = myButtonT5->checkMyButton();
