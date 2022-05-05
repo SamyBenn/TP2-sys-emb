@@ -19,20 +19,31 @@
     Historique des versions
         Version    Date       Auteur       Description
         1.1        22/08/15  Alain       Première version du logiciel
+        1.2        05/05/22   Samy        Lecture de temperature avec senseur DHT22 (non oriente-objet)
 
     Fonctionnalités implantées
         Lecture des evénements envoyés par l'écran
         Envoyer une commande à l'écran
           Optenir la version du Firmware de l'écran
+
+        Affichage des infos du senseur DHT22 dans le terminal
+        Lecture de la temperature
+        Affichage de la temperature dans le terminal
  * */
 
 #include <Arduino.h>
 #include <Adafruit_Sensor.h>
+#include <DHT.h>
+#include <DHT_U.h>
 
 // stone
 #define RXD2 18//16
 #define TXD2 19//17
 #define BAUD_RATE 115200
+
+// dht
+#define DHTPIN 22
+#define DHTTYPE DHT22
 
 #include <iostream>
 
@@ -84,6 +95,10 @@ void readStoneData() {
   if(rd.id<0) std::cout << "Data received ( id: : " << intToHexa(abs(rd.id)) << "  Command: " << rd.command << " Type: " << rd.type<< ")\n";
 }
 
+// initialization pour dht22
+DHT_Unified dht(DHTPIN, DHTTYPE);
+uint32_t delayMS;
+
 void setup() {
   
   Serial.begin(9600);
@@ -101,15 +116,41 @@ void setup() {
 
   cout << std::string("Début de l'exemple Stone de base pour le ESP32")  << "\n";
   // Initialize device.
+
+  dht.begin();
+  Serial.println(F("DHTxx Unified Sensor Example"));
+  // Print temperature sensor details.
+  sensor_t sensor;
+  dht.temperature().getSensor(&sensor);
+  Serial.println(F("------------------------------------"));
+  Serial.println(F("Temperature Sensor"));
+  Serial.print  (F("Sensor Type: ")); Serial.println(sensor.name);
+  Serial.print  (F("Driver Ver:  ")); Serial.println(sensor.version);
+  Serial.print  (F("Unique ID:   ")); Serial.println(sensor.sensor_id);
+  Serial.print  (F("Max Value:   ")); Serial.print(sensor.max_value); Serial.println(F("°C"));
+  Serial.print  (F("Min Value:   ")); Serial.print(sensor.min_value); Serial.println(F("°C"));
+  Serial.print  (F("Resolution:  ")); Serial.print(sensor.resolution); Serial.println(F("°C"));
+  Serial.println(F("------------------------------------"));
+  // Set delay between sensor readings based on sensor details.
+  delayMS = sensor.min_delay / 1000;
 }
 
 void loop() { 
+  /*// Delay between measurements.
+  delay(delayMS);
+  // Get temperature event and print its value.
+  sensors_event_t event;
+  dht.temperature().getEvent(&event);
+  if (isnan(event.temperature)) {
+    Serial.println(F("Error reading temperature!"));
+  }
+  else {
+    Serial.print(F("Temperature: "));
+    Serial.print(event.temperature);
+    Serial.println(F("°C"));
+  }*/
   
   readStoneData();
-  Serial.println("oui");
-  myStone->getVersion();
-
-  delay(1000);
   int buttonActionT4 = myButtonT4->checkMyButton();
       if(buttonActionT4 > 2)  {  //Si appuyé plus de 0.2 secondes
             Serial.println("Button T4 pressed");
@@ -120,11 +161,12 @@ void loop() {
       if(buttonActionT5 > 2)  {  //Si appuyé plus de 0.2 secondes
             Serial.println("Button T5 pressed");
             //Dans la version  1.2, nous allons remplacer ces lignes pour utiliser la
-            //méthode getVersion()
-            //char cmdFormat2[99];
-            //strcpy(cmdFormat2, "ST<{\"cmd_code\":\"sys_version\",\"type\":\"system\"}>ET");
-            //std::cout << cmdFormat2 << "\n";
-            //myStone->writeIt((char*)cmdFormat2);
+            /*méthode getVersion()
+            Serial.println("test");
+            char cmdFormat2[99];
+            strcpy(cmdFormat2, "ST<{\"cmd_code\":\"sys_version\",\"type\":\"system\"}>ET");
+            std::cout << cmdFormat2 << "\n";
+            Serial2.write(cmdFormat2.c_str());*/
             if(myStone) myStone->getVersion();
           }
 }
