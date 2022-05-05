@@ -46,5 +46,8 @@ class MyStone {
         datasRead getValidsDatasIfExists(); 
         int writeIt(std::string cmdFormat2);
         int readIt(char *data, int len);
+        void changePage(const char *pageName = "");
+        void setLabel(const char *labelName, const char *value);
+        void getVersion();
 };
 #endif

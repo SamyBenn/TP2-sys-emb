@@ -158,3 +158,27 @@ int MyStone::readIt(char *data, int len){
   if(mySerial) mySerial->readIt(data, len);
   return(0);
 };
+
+//Format: ST<{"cmd_code":"set_text","type":"label","widget":"label1","text":"HelloStone"}>ET
+void MyStone::setLabel(const char *labelName, const char *value){
+    char cmdFormat2[1024];
+    sprintf(cmdFormat2, "ST<{\"cmd_code\":\"set_text\",\"type\":\"label\",\"widget\":\"%s\",\"text\":\"%s\"}>ET", labelName, value);
+    if(mySerial) mySerial->writeIt(cmdFormat2);
+    };
+
+
+//Format: ST<{\"cmd_code\":\"open_win\",\"widget\":\"window1\"}>ET
+//If pageName is empty, use home_page
+void MyStone::changePage(const char *pageName) {
+    char cmdFormat2[99];
+    sprintf(cmdFormat2, "ST<{\"cmd_code\":\"open_win\",\"widget\":\"%s\"}>ET", strlen(pageName) ? pageName : "home_page");
+    if(mySerial) mySerial->writeIt(cmdFormat2);
+  };
+
+
+//Format: ST<{"cmd_code":"sys_version","type":"system"}>ET
+void MyStone::getVersion() {
+    char cmdFormat2[99];
+    strcpy(cmdFormat2, "ST<{\"cmd_code\":\"sys_version\",\"type\":\"system\"}>ET");
+	if(mySerial) mySerial->writeIt(cmdFormat2);
+};

@@ -27,7 +27,9 @@
  * */
 
 #include <Arduino.h>
+#include <Adafruit_Sensor.h>
 
+// stone
 #define RXD2 18//16
 #define TXD2 19//17
 #define BAUD_RATE 115200
@@ -82,7 +84,6 @@ void readStoneData() {
   if(rd.id<0) std::cout << "Data received ( id: : " << intToHexa(abs(rd.id)) << "  Command: " << rd.command << " Type: " << rd.type<< ")\n";
 }
 
-
 void setup() {
   
   Serial.begin(9600);
@@ -99,25 +100,31 @@ void setup() {
   myButtonT5->autoSensibilisation(); //Trouve la sensibilité automatiquement
 
   cout << std::string("Début de l'exemple Stone de base pour le ESP32")  << "\n";
+  // Initialize device.
 }
 
 void loop() { 
   
   readStoneData();
+  Serial.println("oui");
+  myStone->getVersion();
 
+  delay(1000);
   int buttonActionT4 = myButtonT4->checkMyButton();
       if(buttonActionT4 > 2)  {  //Si appuyé plus de 0.2 secondes
-          Serial.println("Button T4 pressed");
-          }
+            Serial.println("Button T4 pressed");
+            if(myStone) myStone->changePage();
+            }
 
   int buttonActionT5 = myButtonT5->checkMyButton();
       if(buttonActionT5 > 2)  {  //Si appuyé plus de 0.2 secondes
-          Serial.println("Button T5 pressed");
-
-          char cmdFormat2[99];
-          strcpy(cmdFormat2, "ST<{\"cmd_code\":\"sys_version\",\"type\":\"system\"}>ET");
-          std::cout << cmdFormat2 << "\n";
-          myStone->writeIt((char*)cmdFormat2);
-
+            Serial.println("Button T5 pressed");
+            //Dans la version  1.2, nous allons remplacer ces lignes pour utiliser la
+            //méthode getVersion()
+            //char cmdFormat2[99];
+            //strcpy(cmdFormat2, "ST<{\"cmd_code\":\"sys_version\",\"type\":\"system\"}>ET");
+            //std::cout << cmdFormat2 << "\n";
+            //myStone->writeIt((char*)cmdFormat2);
+            if(myStone) myStone->getVersion();
           }
-  }
+}
