@@ -35,6 +35,7 @@
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
 #include <DHT_U.h>
+#include "MyDHT.h"
 
 // stone
 #define RXD2 18//16
@@ -42,7 +43,7 @@
 #define BAUD_RATE 115200
 
 // dht
-#define DHTPIN 22
+#define DHTPIN 27
 #define DHTTYPE DHT22
 
 #include <iostream>
@@ -96,13 +97,21 @@ void readStoneData() {
 }
 
 // initialization pour dht22
-DHT_Unified dht(DHTPIN, DHTTYPE);
-uint32_t delayMS;
+MyDHT *temp;
+
+bool fourOn = false;
+int compteur = 10;
+short delayMS = 1000;
+void compteurReset(int& i)
+{
+  i = 100;
+}
 
 void setup() {
-  
   Serial.begin(9600);
 
+  /*
+  //Stone
   Serial.println("Stone serial Txd is on pin: "+String(TXD2));
   Serial.println("Stone serial Rxd is on pin: "+String(RXD2));
   myStone = new MyStone(115200, SERIAL_8N1, RXD2, TXD2);
@@ -114,10 +123,19 @@ void setup() {
   myButtonT5->init(T5);
   myButtonT5->autoSensibilisation(); //Trouve la sensibilité automatiquement
 
-  cout << std::string("Début de l'exemple Stone de base pour le ESP32")  << "\n";
-  // Initialize device.
+  cout << std::string("Début de l'exemple Stone de base pour le ESP32")  << "\n";*/
 
-  dht.begin();
+
+  //DHT
+  temp = new MyDHT(DHTPIN, DHTTYPE);
+
+  temp->printSensorDetails();
+
+  fourOn = true;
+
+
+
+  /*dht.begin();
   Serial.println(F("DHTxx Unified Sensor Example"));
   // Print temperature sensor details.
   sensor_t sensor;
@@ -132,25 +150,31 @@ void setup() {
   Serial.print  (F("Resolution:  ")); Serial.print(sensor.resolution); Serial.println(F("°C"));
   Serial.println(F("------------------------------------"));
   // Set delay between sensor readings based on sensor details.
-  delayMS = sensor.min_delay / 1000;
+  delayMS = sensor.min_delay / 1000;*/
 }
 
 void loop() { 
-  /*// Delay between measurements.
+  // Delay between measurements.
   delay(delayMS);
-  // Get temperature event and print its value.
-  sensors_event_t event;
-  dht.temperature().getEvent(&event);
-  if (isnan(event.temperature)) {
-    Serial.println(F("Error reading temperature!"));
-  }
-  else {
-    Serial.print(F("Temperature: "));
-    Serial.print(event.temperature);
-    Serial.println(F("°C"));
-  }*/
+  if(fourOn)
+  {
+    temp->printTemp();
   
-  readStoneData();
+    if(temp->getTemp() > 25)
+    {
+      compteur += -1;
+    }
+
+    if(compteur == 0)
+    {
+      fourOn = false;
+    }
+    Serial.print("Time Remaining : ");
+    Serial.println(compteur);
+  }else{
+    Serial.println("NO!");
+  }
+  /*readStoneData();
   int buttonActionT4 = myButtonT4->checkMyButton();
       if(buttonActionT4 > 2)  {  //Si appuyé plus de 0.2 secondes
             Serial.println("Button T4 pressed");
@@ -160,13 +184,6 @@ void loop() {
   int buttonActionT5 = myButtonT5->checkMyButton();
       if(buttonActionT5 > 2)  {  //Si appuyé plus de 0.2 secondes
             Serial.println("Button T5 pressed");
-            //Dans la version  1.2, nous allons remplacer ces lignes pour utiliser la
-            /*méthode getVersion()
-            Serial.println("test");
-            char cmdFormat2[99];
-            strcpy(cmdFormat2, "ST<{\"cmd_code\":\"sys_version\",\"type\":\"system\"}>ET");
-            std::cout << cmdFormat2 << "\n";
-            Serial2.write(cmdFormat2.c_str());*/
             if(myStone) myStone->getVersion();
-          }
+          }*/
 }

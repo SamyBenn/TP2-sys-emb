@@ -153,7 +153,7 @@ int MyStone::writeIt(std::string cmdFormat2){
   if(mySerial) mySerial->writeIt(cmdFormat2);
   return(0);
 };
- 
+
 int MyStone::readIt(char *data, int len){
   if(mySerial) mySerial->readIt(data, len);
   return(0);
