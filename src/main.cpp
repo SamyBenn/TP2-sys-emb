@@ -102,14 +102,17 @@ MyDHT *temp;
 bool fourOn = false;
 int compteur = 10;
 short delayMS = 1000;
-void compteurReset(int& i)
-{
-  i = 100;
-}
+void compteurReset(int& i){ i = 100; }
 
 void setup() {
   Serial.begin(9600);
+  
+  // testing equipment
+  myButtonT4->init(T4);
+  myButtonT4->autoSensibilisation(); //Trouve la sensibilité automatiquement
 
+  myButtonT5->init(T5);
+  myButtonT5->autoSensibilisation(); //Trouve la sensibilité automatiquement
   /*
   //Stone
   Serial.println("Stone serial Txd is on pin: "+String(TXD2));
@@ -117,11 +120,7 @@ void setup() {
   myStone = new MyStone(115200, SERIAL_8N1, RXD2, TXD2);
 
 
-  myButtonT4->init(T4);
-  myButtonT4->autoSensibilisation(); //Trouve la sensibilité automatiquement
-
-  myButtonT5->init(T5);
-  myButtonT5->autoSensibilisation(); //Trouve la sensibilité automatiquement
+  
 
   cout << std::string("Début de l'exemple Stone de base pour le ESP32")  << "\n";*/
 
@@ -130,10 +129,6 @@ void setup() {
   temp = new MyDHT(DHTPIN, DHTTYPE);
 
   temp->printSensorDetails();
-
-  fourOn = true;
-
-
 
   /*dht.begin();
   Serial.println(F("DHTxx Unified Sensor Example"));
@@ -155,20 +150,27 @@ void setup() {
 
 void loop() { 
   // Delay between measurements.
+  int buttonActionT4 = myButtonT4->checkMyButton();
+  if(buttonActionT4 > 2)  //Si appuyé plus de 0.2 secondes
+  {  
+    Serial.println("Four Demarre");
+    fourOn = true;
+  }
+
+  int buttonActionT5 = myButtonT5->checkMyButton();
+  if(buttonActionT5 > 2) //Si appuyé plus de 0.2 secondes
+  {
+    Serial.println("Four arrete & reset");
+    compteurReset(compteur);
+    fourOn = false;
+  }
+
   delay(delayMS);
   if(fourOn)
   {
     temp->printTemp();
-  
-    if(temp->getTemp() > 25)
-    {
-      compteur += -1;
-    }
-
-    if(compteur == 0)
-    {
-      fourOn = false;
-    }
+    if(temp->getTemp() > 25){ compteur += -1; }
+    if(compteur == 0) { fourOn = false; }
     Serial.print("Time Remaining : ");
     Serial.println(compteur);
   }else{
