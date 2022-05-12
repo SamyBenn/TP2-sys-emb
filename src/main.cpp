@@ -166,12 +166,6 @@ void loop() {
     myStone->getVersion();
   }
 
-  if(compteur > 20)
-  { 
-    fourOn = false; 
-    compteurReset(compteur);
-  }
-
   if(fourOn)
   {
     temp->printTemp();
@@ -192,6 +186,14 @@ void loop() {
     myStone->setLabel("lbl_comp", strCompteur);
   }else{
     Serial.println("NO!");
+  }
+  
+  if(compteur == 20)
+  { 
+    fourOn = false; 
+    compteurReset(compteur);
+    delay(1000);
+    myStone->setLabel("lbl_comp", "Le bois a brulé");
   }
   delay(delayMS);
 
