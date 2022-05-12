@@ -73,8 +73,6 @@ std::string intToString(int value, std::string formatStr){
   return (buffer);
 };
 
-
-
 //Thread qui permet de LOOPER et lire le contenu du port serie
 //avec l'aide du la fonction getValidsDatasIfExists
 void readStoneData() {
@@ -100,9 +98,18 @@ void readStoneData() {
 MyDHT *temp;
 
 bool fourOn = false;
-int compteur = 10;
+int compteur = 0;
 short delayMS = 1000;
-void compteurReset(int& i){ i = 100; }
+void compteurReset(int& i){ i = 0; }
+
+/*void countdown(MyDHT& temp, int& compteur)
+{
+  temp->printTemp();
+  if(temp->getTemp() > 25){ compteur += -1; }
+  if(compteur == 0) { fourOn = false; }
+  Serial.print("Time Remaining : ");
+  Serial.println(compteur);
+}*/
 
 void setup() {
   Serial.begin(9600);
@@ -113,42 +120,29 @@ void setup() {
 
   myButtonT5->init(T5);
   myButtonT5->autoSensibilisation(); //Trouve la sensibilité automatiquement
-  /*
+  
   //Stone
   Serial.println("Stone serial Txd is on pin: "+String(TXD2));
   Serial.println("Stone serial Rxd is on pin: "+String(RXD2));
   myStone = new MyStone(115200, SERIAL_8N1, RXD2, TXD2);
 
+  cout << std::string("Début de l'exemple Stone de base pour le ESP32")  << "\n";
+
+  readStoneData();
+  Serial.println("le version de stone");
+  delay(1000);
+  myStone->changePage("main");
+  myStone->getVersion();
 
   
-
-  cout << std::string("Début de l'exemple Stone de base pour le ESP32")  << "\n";*/
-
-
   //DHT
   temp = new MyDHT(DHTPIN, DHTTYPE);
 
   temp->printSensorDetails();
-
-  /*dht.begin();
-  Serial.println(F("DHTxx Unified Sensor Example"));
-  // Print temperature sensor details.
-  sensor_t sensor;
-  dht.temperature().getSensor(&sensor);
-  Serial.println(F("------------------------------------"));
-  Serial.println(F("Temperature Sensor"));
-  Serial.print  (F("Sensor Type: ")); Serial.println(sensor.name);
-  Serial.print  (F("Driver Ver:  ")); Serial.println(sensor.version);
-  Serial.print  (F("Unique ID:   ")); Serial.println(sensor.sensor_id);
-  Serial.print  (F("Max Value:   ")); Serial.print(sensor.max_value); Serial.println(F("°C"));
-  Serial.print  (F("Min Value:   ")); Serial.print(sensor.min_value); Serial.println(F("°C"));
-  Serial.print  (F("Resolution:  ")); Serial.print(sensor.resolution); Serial.println(F("°C"));
-  Serial.println(F("------------------------------------"));
-  // Set delay between sensor readings based on sensor details.
-  delayMS = sensor.min_delay / 1000;*/
 }
 
 void loop() { 
+
   // Delay between measurements.
   int buttonActionT4 = myButtonT4->checkMyButton();
   if(buttonActionT4 > 2)  //Si appuyé plus de 0.2 secondes
@@ -165,22 +159,36 @@ void loop() {
     fourOn = false;
   }
 
-  delay(delayMS);
   if(fourOn)
   {
     temp->printTemp();
-    if(temp->getTemp() > 25){ compteur += -1; }
-    if(compteur == 0) { fourOn = false; }
-    Serial.print("Time Remaining : ");
+    float temperature = temp->getTemp();
+    
+    if(temperature >= 25){ compteur ++; }
+    if(compteur == 21) { fourOn = false; }
+    Serial.print("Time : ");
     Serial.println(compteur);
+
+
+    readStoneData();
+    char strTemperature[64];
+    sprintf(strTemperature, "%g", temperature);
+    myStone->setLabel("lbl_temp", strTemperature);
+
+    /*char strCompteur[64];
+    sprintf(strCompteur, "%d", compteur);
+    myStone->setLabel("lbl_compteur", strCompteur);*/
   }else{
     Serial.println("NO!");
   }
-  /*readStoneData();
-  int buttonActionT4 = myButtonT4->checkMyButton();
+  delay(delayMS);
+
+  // bouton iteragissants avec stone
+  /*int buttonActionT4 = myButtonT4->checkMyButton();
       if(buttonActionT4 > 2)  {  //Si appuyé plus de 0.2 secondes
             Serial.println("Button T4 pressed");
-            if(myStone) myStone->changePage("main");
+            //if(myStone) myStone->changePage("main");
+            
             }
 
   int buttonActionT5 = myButtonT5->checkMyButton();
