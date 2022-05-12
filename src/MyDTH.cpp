@@ -1,3 +1,9 @@
+/*
+ * MyDHT.cpp
+ *
+ *  Created on : 04/05/22
+ *  @Author: Samy
+ */
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
 #include <DHT_U.h>

@@ -37,20 +37,16 @@
 #include <DHT_U.h>
 #include "MyDHT.h"
 
-// stone
+// pinout stone
 #define RXD2 18//16
 #define TXD2 19//17
 #define BAUD_RATE 115200
 
-// dht
+// pinout dht
 #define DHTPIN 27
 #define DHTTYPE DHT22
 
 #include <iostream>
-
-#include "MyButton.h"
-MyButton *myButtonT4 = new MyButton();
-MyButton *myButtonT5 = new MyButton();
 
 #include "MyStone.h"
 MyStone *myStone;
@@ -60,9 +56,11 @@ bool btnDemarrer;
 MyDHT *temp;
 
 bool fourOn = false;
-int compteur = 0;
+short tempMin = 24;
+short tempMax = tempMin * 1.1;
+short compteur = 0;
 short delayMS = 1000;
-void compteurReset(int& i){ i = 0; }
+void compteurReset(short& i){ i = 0; }
 
 std::string intToHexa(int value){
   char buffer[10];
@@ -103,7 +101,8 @@ void readStoneData() {
       std::cout << "GData : " << intToHexa(abs(rd.id)) << " " << rd.command << " " << rd.name << " " << rd.type << "\n";
       std::string stoneButton = rd.name;
       std::cout << "Button : " <<  stoneButton.c_str() << "\n";
-      if(stoneButton == "btn_demarrer" & rd.type == 2)
+      // si le "btn_demarrer" est appuye on garde l'information
+      if(stoneButton == "btn_demarrer" && rd.type == 2)
       {
         btnDemarrer = true;
       }
@@ -137,102 +136,88 @@ void setup() {
   myButtonT5->autoSensibilisation(); //Trouve la sensibilité automatiquement
   */
   
-  //Stone
+  //Affichage des infos du Stone
   Serial.println("Stone serial Txd is on pin: "+String(TXD2));
   Serial.println("Stone serial Rxd is on pin: "+String(RXD2));
   myStone = new MyStone(115200, SERIAL_8N1, RXD2, TXD2);
 
-  cout << std::string("Début de l'exemple Stone de base pour le ESP32")  << "\n";
-
+  // Envoi de la commande pour obtenir la version du stone
   myStone->getVersion();
+
+  // delai puis changement du splash screen vers l'ecran principal
   delay(2000);
   myStone->changePage("main");
   Serial.println("le version de stone");
+
+  // lecture des donnees envoyees du stone pour obtenir la version
   readStoneData();
 
   
-  //DHT
+  //initialization de l'objet DHT
   temp = new MyDHT(DHTPIN, DHTTYPE);
 
+  // obtenir et ecrire les details du senseur
   temp->printSensorDetails();
 }
 
 void loop() { 
-
+  // lecture des donnees envoyees par le stone
   readStoneData();
 
-  // bouton stone
+  // Si le bouton demarrer est appuye on demarre le four
   if(btnDemarrer)
   {
     Serial.println("Four Demarre");
     fourOn = true;
+    // reset de l'etat du bouton pour pouvoir le reutiliser
     btnDemarrer = false;
   }
 
-  /*
-  // boutons pins
-  int buttonActionT4 = myButtonT4->checkMyButton();
-  if(buttonActionT4 > 2)  //Si appuyé plus de 0.2 secondes
-  {
-    Serial.println("Four Demarre");
-    fourOn = true;
-  }
+  /*Serial.println("Four arrete & reset");
+  compteurReset(compteur);
+  fourOn = false;
 
-  int buttonActionT5 = myButtonT5->checkMyButton();
-  if(buttonActionT5 > 2) //Si appuyé plus de 0.2 secondes
-  {
-    Serial.println("Four arrete & reset");
-    compteurReset(compteur);
-    fourOn = false;
+  //testing
+  Serial.println("le version de stone");
+  delay(1000);
+  myStone->changePage("main");
+  myStone->getVersion();
+  */
 
-    //testing
-    Serial.println("le version de stone");
-    delay(1000);
-    myStone->changePage("main");
-    myStone->getVersion();
-  }*/
-
-  // logique du four
+  // logique du four, si le four est allume on fait:
   if(fourOn)
   {
+    // affichage de la temperature dans le terminal
     temp->printTemp();
+    // garder la derniere valeur obtenue de la temperature
     float temperature = temp->getTemp();
     
-    if(temperature >= 25 && temperature < 26){ compteur ++; }
+    // Si la temperature est entre 25 est 26 : incrementer le compteur
+    if(temperature >= tempMin && temperature < tempMax){ compteur ++; }
+    // afficher sur le terminal le compteur
     Serial.print("Time : ");
     Serial.println(compteur);
 
+    // formater et afficher la temperature sur le label du stone
     char strTemperature[64];
     sprintf(strTemperature, "%g Celcius", temperature);
     myStone->setLabel("lbl_temp", strTemperature);
 
+    // formater et afficher la valeur du compteur sur la label du stone
     char strCompteur[64];
     sprintf(strCompteur, "%ds/20s", compteur);
     myStone->setLabel("lbl_comp", strCompteur);
-  }else{
-    Serial.println("NO!");
   }
   
+  // quand le compteur atteint 20
   if(compteur == 20)
   { 
+    // eteindre le four, remettre le comteur a zero et afficher que le bois a brule a la place du compteur
     fourOn = false; 
     compteurReset(compteur);
-    delay(1000);
+    delay(delayMS);
     myStone->setLabel("lbl_comp", "Le bois a brulé");
   }
+  // delai 1 seconde
   delay(delayMS);
-
-  // bouton iteragissants avec stone
-  /*int buttonActionT4 = myButtonT4->checkMyButton();
-      if(buttonActionT4 > 2)  {  //Si appuyé plus de 0.2 secondes
-            Serial.println("Button T4 pressed");
-            //if(myStone) myStone->changePage("main");
-            
-            }
-
-  int buttonActionT5 = myButtonT5->checkMyButton();
-      if(buttonActionT5 > 2)  {  //Si appuyé plus de 0.2 secondes
-            Serial.println("Button T5 pressed");
-            if(myStone) myStone->getVersion();
-          }*/
 }
