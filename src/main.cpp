@@ -144,9 +144,9 @@ void setup() {
 
   cout << std::string("Début de l'exemple Stone de base pour le ESP32")  << "\n";
 
-  myStone->changePage("main");
   myStone->getVersion();
-  delay(1000);
+  delay(2000);
+  myStone->changePage("main");
   Serial.println("le version de stone");
   readStoneData();
 
@@ -198,7 +198,7 @@ void loop() {
     temp->printTemp();
     float temperature = temp->getTemp();
     
-    if(temperature >= 25){ compteur ++; }
+    if(temperature >= 25 && temperature < 26){ compteur ++; }
     Serial.print("Time : ");
     Serial.println(compteur);
 
