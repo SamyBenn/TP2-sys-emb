@@ -78,18 +78,26 @@ std::string intToString(int value, std::string formatStr){
 void readStoneData() {
   datasRead rd = myStone->getValidsDatasIfExists();
   //std::cout << "GData : " << intToHexa(abs(rd.id)) << " " << rd.command << " " << rd.name << " " << rd.type << "\n";
-  switch(rd.id){
+  switch(rd.id)
+  {
+    case 0x0002:  //Version
+    {
+      std::cout << "GData : " << intToHexa(abs(rd.id)) << " " << rd.command << " " << rd.name << " " << rd.type << "\n";
+      std::string stoneVersion = rd.name;
+      std::cout << "Version : " <<  stoneVersion.c_str() << "\n";
+      //std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      break;
+    }
 
-      case 0x0002: { //Version
-          std::cout << "GData : " << intToHexa(abs(rd.id)) << " " << rd.command << " " << rd.name << " " << rd.type << "\n";
-          std::string stoneVersion = rd.name;
-          std::cout << "Version : " <<  stoneVersion.c_str() << "\n";
-
-          //std::this_thread::sleep_for(std::chrono::milliseconds(10));
-
-          break;
-          }
-      }
+    case 0x1001:  //Button
+    {
+      std::cout << "GData : " << intToHexa(abs(rd.id)) << " " << rd.command << " " << rd.name << " " << rd.type << "\n";
+      std::string stoneButton = rd.name;
+      std::cout << "Button : " <<  stoneButton.c_str() << "\n";
+      break;
+    }
+      
+  }
 
   if(rd.id<0) std::cout << "Data received ( id: : " << intToHexa(abs(rd.id)) << "  Command: " << rd.command << " Type: " << rd.type<< ")\n";
 }
@@ -128,11 +136,11 @@ void setup() {
 
   cout << std::string("Début de l'exemple Stone de base pour le ESP32")  << "\n";
 
-  readStoneData();
-  Serial.println("le version de stone");
-  delay(1000);
   myStone->changePage("main");
   myStone->getVersion();
+  delay(1000);
+  Serial.println("le version de stone");
+  readStoneData();
 
   
   //DHT
@@ -143,7 +151,12 @@ void setup() {
 
 void loop() { 
 
-  // Delay between measurements.
+  readStoneData();
+
+  // bouton stone
+  //if(){}
+
+  // boutons pins
   int buttonActionT4 = myButtonT4->checkMyButton();
   if(buttonActionT4 > 2)  //Si appuyé plus de 0.2 secondes
   {  
@@ -159,7 +172,6 @@ void loop() {
     fourOn = false;
 
     //testing
-    readStoneData();
     Serial.println("le version de stone");
     delay(1000);
     myStone->changePage("main");
@@ -176,7 +188,6 @@ void loop() {
     Serial.println(compteur);
 
 
-    readStoneData();
     char strTemperature[64];
     sprintf(strTemperature, "%g Celcius", temperature);
     myStone->setLabel("lbl_temp", strTemperature);
