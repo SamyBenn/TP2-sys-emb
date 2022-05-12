@@ -54,6 +54,15 @@ MyButton *myButtonT5 = new MyButton();
 
 #include "MyStone.h"
 MyStone *myStone;
+bool btnDemarrer;
+
+// initialization pour dht22
+MyDHT *temp;
+
+bool fourOn = false;
+int compteur = 0;
+short delayMS = 1000;
+void compteurReset(int& i){ i = 0; }
 
 std::string intToHexa(int value){
   char buffer[10];
@@ -94,6 +103,10 @@ void readStoneData() {
       std::cout << "GData : " << intToHexa(abs(rd.id)) << " " << rd.command << " " << rd.name << " " << rd.type << "\n";
       std::string stoneButton = rd.name;
       std::cout << "Button : " <<  stoneButton.c_str() << "\n";
+      if(stoneButton == "btn_demarrer" & rd.type == 2)
+      {
+        btnDemarrer = true;
+      }
       break;
     }
       
@@ -102,13 +115,6 @@ void readStoneData() {
   if(rd.id<0) std::cout << "Data received ( id: : " << intToHexa(abs(rd.id)) << "  Command: " << rd.command << " Type: " << rd.type<< ")\n";
 }
 
-// initialization pour dht22
-MyDHT *temp;
-
-bool fourOn = false;
-int compteur = 0;
-short delayMS = 1000;
-void compteurReset(int& i){ i = 0; }
 
 /*void countdown(MyDHT& temp, int& compteur)
 {
@@ -123,11 +129,13 @@ void setup() {
   Serial.begin(9600);
   
   // testing equipment
+  /*
   myButtonT4->init(T4);
   myButtonT4->autoSensibilisation(); //Trouve la sensibilité automatiquement
 
   myButtonT5->init(T5);
   myButtonT5->autoSensibilisation(); //Trouve la sensibilité automatiquement
+  */
   
   //Stone
   Serial.println("Stone serial Txd is on pin: "+String(TXD2));
@@ -154,12 +162,18 @@ void loop() {
   readStoneData();
 
   // bouton stone
-  //if(){}
+  if(btnDemarrer)
+  {
+    Serial.println("Four Demarre");
+    fourOn = true;
+    btnDemarrer = false;
+  }
 
+  /*
   // boutons pins
   int buttonActionT4 = myButtonT4->checkMyButton();
   if(buttonActionT4 > 2)  //Si appuyé plus de 0.2 secondes
-  {  
+  {
     Serial.println("Four Demarre");
     fourOn = true;
   }
@@ -176,8 +190,9 @@ void loop() {
     delay(1000);
     myStone->changePage("main");
     myStone->getVersion();
-  }
+  }*/
 
+  // logique du four
   if(fourOn)
   {
     temp->printTemp();
@@ -186,7 +201,6 @@ void loop() {
     if(temperature >= 25){ compteur ++; }
     Serial.print("Time : ");
     Serial.println(compteur);
-
 
     char strTemperature[64];
     sprintf(strTemperature, "%g Celcius", temperature);
