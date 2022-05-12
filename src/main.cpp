@@ -157,6 +157,19 @@ void loop() {
     Serial.println("Four arrete & reset");
     compteurReset(compteur);
     fourOn = false;
+
+    //testing
+    readStoneData();
+    Serial.println("le version de stone");
+    delay(1000);
+    myStone->changePage("main");
+    myStone->getVersion();
+  }
+
+  if(compteur > 20)
+  { 
+    fourOn = false; 
+    compteurReset(compteur);
   }
 
   if(fourOn)
@@ -165,19 +178,18 @@ void loop() {
     float temperature = temp->getTemp();
     
     if(temperature >= 25){ compteur ++; }
-    if(compteur == 21) { fourOn = false; }
     Serial.print("Time : ");
     Serial.println(compteur);
 
 
     readStoneData();
     char strTemperature[64];
-    sprintf(strTemperature, "%g", temperature);
+    sprintf(strTemperature, "%g Celcius", temperature);
     myStone->setLabel("lbl_temp", strTemperature);
 
-    /*char strCompteur[64];
-    sprintf(strCompteur, "%d", compteur);
-    myStone->setLabel("lbl_compteur", strCompteur);*/
+    char strCompteur[64];
+    sprintf(strCompteur, "%ds/20s", compteur);
+    myStone->setLabel("lbl_comp", strCompteur);
   }else{
     Serial.println("NO!");
   }
