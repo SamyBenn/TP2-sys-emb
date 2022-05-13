@@ -18,8 +18,14 @@
 
     Historique des versions
         Version    Date       Auteur       Description
-        1.1        22/08/15  Alain       Première version du logiciel
-        1.2        05/05/22   Samy        Lecture de temperature avec senseur DHT22 (non oriente-objet)
+        1.1        22/08/15   Alain       Première version du logiciel
+        1.2        01/05/22   Samy        Lecture de temperature avec senseur DHT22 (non oriente-objet)
+        1.3        05/05/22   Samy        Temperature en oriente objet et changement du splash screen
+        1.4        06/05/22   Samy        bouton sur la pin pour demarrer le four
+        1.5        07/05/22   Samy        Logique pour le compteur
+        1.6        10/05/22   Samy        Ecriture des temperature et compteur sur l'ecran stone
+        1.7        11/05/22   Samy        Bouton sur l'ecran stone fonctionnel
+        2.0        12/05/22   Samy        Corrections finales pour la remise et supression de la classe MyButton
 
     Fonctionnalités implantées
         Lecture des evénements envoyés par l'écran
@@ -114,27 +120,8 @@ void readStoneData() {
   if(rd.id<0) std::cout << "Data received ( id: : " << intToHexa(abs(rd.id)) << "  Command: " << rd.command << " Type: " << rd.type<< ")\n";
 }
 
-
-/*void countdown(MyDHT& temp, int& compteur)
-{
-  temp->printTemp();
-  if(temp->getTemp() > 25){ compteur += -1; }
-  if(compteur == 0) { fourOn = false; }
-  Serial.print("Time Remaining : ");
-  Serial.println(compteur);
-}*/
-
 void setup() {
   Serial.begin(9600);
-  
-  // testing equipment
-  /*
-  myButtonT4->init(T4);
-  myButtonT4->autoSensibilisation(); //Trouve la sensibilité automatiquement
-
-  myButtonT5->init(T5);
-  myButtonT5->autoSensibilisation(); //Trouve la sensibilité automatiquement
-  */
   
   //Affichage des infos du Stone
   Serial.println("Stone serial Txd is on pin: "+String(TXD2));
@@ -147,7 +134,7 @@ void setup() {
   // delai puis changement du splash screen vers l'ecran principal
   delay(2000);
   myStone->changePage("main");
-  Serial.println("le version de stone");
+  Serial.println("la version de stone");
 
   // lecture des donnees envoyees du stone pour obtenir la version
   readStoneData();
@@ -172,17 +159,6 @@ void loop() {
     // reset de l'etat du bouton pour pouvoir le reutiliser
     btnDemarrer = false;
   }
-
-  /*Serial.println("Four arrete & reset");
-  compteurReset(compteur);
-  fourOn = false;
-
-  //testing
-  Serial.println("le version de stone");
-  delay(1000);
-  myStone->changePage("main");
-  myStone->getVersion();
-  */
 
   // logique du four, si le four est allume on fait:
   if(fourOn)
@@ -216,7 +192,7 @@ void loop() {
     fourOn = false; 
     compteurReset(compteur);
     delay(delayMS);
-    myStone->setLabel("lbl_comp", "Le bois a brulé");
+    myStone->setLabel("lbl_comp", "Le bois a seché");
   }
   // delai 1 seconde
   delay(delayMS);
